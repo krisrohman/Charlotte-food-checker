@@ -8,8 +8,12 @@ exports.handler = async function(event) {
 
 A traveler is in Mexico and wants to know if "${food}" is safe to eat or drink.
 
-Based on CDC and WHO guidance, give an honest assessment. Reply ONLY with raw JSON, no markdown:
-{"score":<1-10>,"verdict":"SAFE or CAUTION or AVOID","headline":"one honest sentence","why":"1-2 sentences based on CDC/WHO guidance","tip":"one practical tip","emoji":"<relevant emoji>","sources":["list which of CDC Travelers Health or WHO Food Safety applies"]}`;
+Based on CDC and WHO guidance only, reply with raw JSON, no markdown:
+{"verdict":"SAFE or CAUTION or AVOID","headline":"one honest sentence","why":"1-2 sentences based on CDC/WHO guidance","tip":"one practical tip","emoji":"<relevant emoji>","sources":["CDC Travelers Health or WHO Food Safety"]}
+
+SAFE = fine for travelers at reputable establishments
+CAUTION = okay but be selective about where you get it  
+AVOID = CDC/WHO advise travelers to skip this`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
