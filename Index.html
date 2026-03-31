@@ -27,19 +27,14 @@ button:disabled { background: #e0d4c0; color: #aaa; cursor: not-allowed; }
 .err.on { display: block; }
 .result { display: none; width: 100%; max-width: 540px; margin-bottom: 28px; border-radius: 24px; padding: 28px; }
 .result.on { display: block; animation: pop 0.4s ease; }
-.big-answer { text-align: center; padding: 20px 16px 24px; border-radius: 18px; margin-bottom: 20px; }
-.big-answer .answer-emoji { font-size: 56px; margin-bottom: 8px; }
-.big-answer .answer-text { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
-.big-answer .answer-sub { font-size: 15px; margin-top: 6px; font-style: italic; opacity: 0.85; }
+.big-answer { text-align: center; padding: 24px 16px 28px; border-radius: 18px; margin-bottom: 20px; }
+.answer-emoji { font-size: 64px; margin-bottom: 12px; }
+.answer-text { font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+.answer-sub { font-size: 16px; font-style: italic; opacity: 0.9; line-height: 1.4; }
 .divider { height: 1px; background: rgba(0,0,0,0.08); margin: 4px 0 20px; }
 .rhead { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .remoji { font-size: 36px; }
 .rfood { font-size: 17px; font-weight: 800; }
-.srow { display: flex; justify-content: space-between; margin: 4px 0; }
-.srow span { font-size: 11px; font-weight: 700; color: #888; letter-spacing: 1px; text-transform: uppercase; }
-.srow strong { font-size: 13px; font-weight: 800; }
-.track { height: 8px; background: #e0e0e0; border-radius: 99px; overflow: hidden; margin-bottom: 16px; }
-.fill { height: 100%; border-radius: 99px; transition: width 0.8s cubic-bezier(.4,0,.2,1); width: 0; }
 .rwhy { font-size: 14px; line-height: 1.7; margin-bottom: 14px; }
 .rtip { background: rgba(255,255,255,0.65); border-radius: 12px; padding: 12px 16px; font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
 .rsrc { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -53,7 +48,7 @@ button:disabled { background: #e0d4c0; color: #aaa; cursor: not-allowed; }
 .pinfo { flex: 1; min-width: 0; }
 .pfood { font-weight: 700; font-size: 14px; color: #3d1f00; }
 .phl { font-size: 12px; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pbadge { color: white; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+.pbadge { font-size: 20px; flex-shrink: 0; }
 @keyframes pop { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
@@ -84,8 +79,6 @@ button:disabled { background: #e0d4c0; color: #aaa; cursor: not-allowed; }
     <div class="remoji" id="rEmoji"></div>
     <div><div class="rfood" id="rFood"></div></div>
   </div>
-  <div class="srow"><span>Confidence Score</span><strong id="rNum"></strong></div>
-  <div class="track"><div class="fill" id="rFill"></div></div>
   <div class="rwhy" id="rWhy"></div>
   <div class="rtip" id="rTip"></div>
   <div class="rsrc" id="rSrc"></div>
@@ -96,9 +89,9 @@ button:disabled { background: #e0d4c0; color: #aaa; cursor: not-allowed; }
 </div>
 <script>
 var V = {
-  SAFE:    { bg:"linear-gradient(135deg,#e8f5e9,#c8e6c9)", border:"#4caf50", text:"#1b5e20", accent:"#2e7d32", bar:"#43a047", answerBg:"#e8f5e9", answerEmoji:"✅", answerText:"Yes, go for it!", answerColor:"#1b5e20", pbg:"#43a047" },
-  CAUTION: { bg:"linear-gradient(135deg,#fff8e1,#ffecb3)", border:"#ffa726", text:"#e65100", accent:"#f57c00", bar:"#ffa726", answerBg:"#fff8e1", answerEmoji:"⚠️", answerText:"Choose carefully", answerColor:"#e65100", pbg:"#f57c00" },
-  AVOID:   { bg:"linear-gradient(135deg,#ffebee,#ffcdd2)", border:"#ef5350", text:"#b71c1c", accent:"#c62828", bar:"#ef5350", answerBg:"#ffebee", answerEmoji:"🚫", answerText:"Skip this one", answerColor:"#b71c1c", pbg:"#c62828" }
+  SAFE:    { bg:"linear-gradient(135deg,#e8f5e9,#c8e6c9)", border:"#4caf50", text:"#1b5e20", accent:"#2e7d32", answerBg:"#e8f5e9", answerEmoji:"✅", answerText:"Yes, go for it!", answerColor:"#1b5e20" },
+  CAUTION: { bg:"linear-gradient(135deg,#fff8e1,#ffecb3)", border:"#ffa726", text:"#e65100", accent:"#f57c00", answerBg:"#fff8e1", answerEmoji:"⚠️", answerText:"Choose carefully", answerColor:"#e65100" },
+  AVOID:   { bg:"linear-gradient(135deg,#ffebee,#ffcdd2)", border:"#ef5350", text:"#b71c1c", accent:"#c62828", answerBg:"#ffebee", answerEmoji:"🚫", answerText:"Skip this one", answerColor:"#b71c1c" }
 };
 var log = [];
 var going = false;
@@ -118,17 +111,16 @@ function go() {
   })
   .then(function(r){ return r.text().then(function(t){ return {ok:r.ok, body:t}; }); })
   .then(function(r){
-    if (!r.ok) throw new Error(r.body.slice(0, 200));
+    if (!r.ok) throw new Error(r.body.slice(0,200));
     var p = JSON.parse(r.body);
     if (p.error) throw new Error(p.error);
-    p.score = Math.max(1, Math.min(10, Number(p.score)||5));
-    p.verdict = p.score>=7 ? "SAFE" : p.score>=4 ? "CAUTION" : "AVOID";
+    if (!V[p.verdict]) p.verdict = "CAUTION";
     render(p, food);
     addLog(p, food);
     document.getElementById("inp").value = "";
   })
-  .catch(function(e){ var el = document.getElementById("err"); el.textContent = e.message; el.classList.add("on"); })
-  .finally(function(){ going = false; document.getElementById("btn").disabled = false; document.getElementById("load").classList.remove("on"); });
+  .catch(function(e){ var el=document.getElementById("err"); el.textContent=e.message; el.classList.add("on"); })
+  .finally(function(){ going=false; document.getElementById("btn").disabled=false; document.getElementById("load").classList.remove("on"); });
 }
 function render(p, food) {
   var v = V[p.verdict];
@@ -143,31 +135,27 @@ function render(p, food) {
   document.getElementById("rEmoji").textContent = p.emoji||"🍽️";
   document.getElementById("rFood").textContent = food;
   document.getElementById("rFood").style.color = v.text;
-  document.getElementById("rNum").textContent = p.score+"/10";
-  document.getElementById("rNum").style.color = v.accent;
-  var f = document.getElementById("rFill"); f.style.background = v.bar; f.style.width = "0";
-  setTimeout(function(){ f.style.width = (p.score/10*100)+"%"; }, 100);
   document.getElementById("rWhy").textContent = p.why;
   document.getElementById("rWhy").style.color = v.accent;
   document.getElementById("rTip").innerHTML = "<strong>💡 Tip:</strong> "+p.tip;
   document.getElementById("rTip").style.color = v.text;
-  var src = document.getElementById("rSrc"); src.innerHTML = "";
-  if (p.sources && p.sources.length) {
-    var l = document.createElement("span"); l.className="srclbl"; l.style.color=v.accent; l.textContent="Based on:"; src.appendChild(l);
+  var src=document.getElementById("rSrc"); src.innerHTML="";
+  if (p.sources&&p.sources.length) {
+    var l=document.createElement("span"); l.className="srclbl"; l.style.color=v.accent; l.textContent="Based on:"; src.appendChild(l);
     p.sources.forEach(function(s){ var g=document.createElement("span"); g.className="srctag"; g.style.border="1px solid "+v.border; g.style.color=v.text; g.textContent=s; src.appendChild(g); });
   }
   res.classList.add("on");
 }
 function addLog(p, food) {
-  log.unshift({score:p.score,verdict:p.verdict,headline:p.headline,emoji:p.emoji,food:food});
-  if (log.length > 6) log.pop();
-  if (log.length < 2) return;
-  document.getElementById("prev").style.display = "block";
-  var pl = document.getElementById("plist"); pl.innerHTML = "";
+  log.unshift({verdict:p.verdict,headline:p.headline,emoji:p.emoji,food:food});
+  if (log.length>6) log.pop();
+  if (log.length<2) return;
+  document.getElementById("prev").style.display="block";
+  var pl=document.getElementById("plist"); pl.innerHTML="";
   log.slice(1).forEach(function(h){
-    var v = V[h.verdict]||V.CAUTION;
-    var el = document.createElement("div"); el.className="pitem";
-    el.innerHTML = '<span class="pemoji">'+(h.emoji||"🍽️")+'</span><div class="pinfo"><div class="pfood">'+h.food+'</div><div class="phl">'+h.headline+'</div></div><div class="pbadge" style="background:'+v.pbg+'">'+v.answerEmoji+'</div>';
+    var v=V[h.verdict]||V.CAUTION;
+    var el=document.createElement("div"); el.className="pitem";
+    el.innerHTML='<span class="pemoji">'+(h.emoji||"🍽️")+'</span><div class="pinfo"><div class="pfood">'+h.food+'</div><div class="phl">'+h.headline+'</div></div><span class="pbadge">'+v.answerEmoji+'</span>';
     pl.appendChild(el);
   });
 }
